@@ -50,11 +50,11 @@ VMINT g_hisr_count = 0;
 void customer_timer_precise_proc(VM_TIMER_ID_PRECISE timer_id, void* user_data){
     VMUINT32 duration = 0;
     /* get ust count */
-    g_precise_stop_count = vm_time_ust_get_count();
+    g_precise_stop_count = vm_time_ust_get_count();//获得开机时间作为定时器结束时间
     /* compute ust duration between start and time out */
     duration = vm_time_ust_get_duration(g_non_precise_start_count, g_precise_stop_count);
     vm_log_debug("precise proc duration %d stop count %d", duration, g_precise_stop_count);
-    g_non_precise_start_count = g_precise_stop_count;
+    g_non_precise_start_count = g_precise_stop_count;//使本次的结束时间作为下一次的开始时间
 }
 
 /* non precise timer time out function */
@@ -75,7 +75,7 @@ void customer_timer_hisr_proc(void* user_data){
 void customer_timer_create_timer(void){
     g_precise_id = vm_timer_create_precise(PRECISE_DELAY_TIME, customer_timer_precise_proc, NULL);
     vm_log_debug("customer timer g_precise_id = %d", g_precise_id);
-    g_precise_start_count = vm_time_ust_get_count();
+    g_precise_start_count = vm_time_ust_get_count();//获得开机到现在的时间
     vm_log_debug("customer timer precise start count %d", g_precise_start_count);
     //use code below to delete precise timer
     //vm_timer_delete_precise(g_precise_id);
@@ -88,7 +88,7 @@ void customer_timer_create_timer(void){
     //vm_timer_delete_non_precise(g_non_precise_id);
 
 
-    g_hisr_id = vm_timer_create_hisr("HISR Timer");
+    g_hisr_id = vm_timer_create_hisr("HISR Timer");//进程比主进程权限高，所以尽量不要在其中断里处理事件
     if(g_hisr_id == NULL){
     	vm_log_debug("create hisr fail");
     	return;
